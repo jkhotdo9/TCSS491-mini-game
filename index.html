@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meteoroid Dodge</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Canvas must be focusable so keyboard input works reliably -->
+  <canvas id="gameWorld" tabindex="0"></canvas>
+
+  <div class="hud" id="hud">
+    <div>Score: <b id="score">0.00</b>s</div>
+    <div>Best: <b id="best">0.00</b>s</div>
+    <div>Meteoroids: <b id="meteoroids">0</b></div>
+    <div class="hint">Move: WASD / Arrow Keys</div>
+    <div class="hint">Restart: R</div>
+    <div class="hint">Pause: P</div>
+    <div class="hint" id="status"></div>
+  </div>
+
+  <script src="gameEngine.js"></script>
+  <script src="meteoroidGame.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
