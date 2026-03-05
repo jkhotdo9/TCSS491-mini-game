@@ -61,15 +61,16 @@ class MeteoroidGame {
     // Audio
     this.bgm = new Audio("audio/minibgm.mp3");
     this.bgm.loop = true;
-    this.bgm.volume = 0.1;
 
     this.gameOverSound = new Audio("audio/gameover.mp3");
     this.gameOverSound.loop = false;
-    this.gameOverSound.volume = 0.4;
 
-    this.muted = false;
-    this.applyMute();
+    // Volume + mute (persist)
+    this.volume = Number(localStorage.getItem("meteoroid_volume") || 0.1);          // 0.0 ~ 1.0
+    this.gameOverVolume = Number(localStorage.getItem("meteoroid_over_volume") || 0.4);
+    this.muted = (localStorage.getItem("meteoroid_muted") === "1");
 
+    this.applyVolume();
     // Build initial stars for start screen
     this.initStars();
 
@@ -104,22 +105,35 @@ class MeteoroidGame {
   updateHudStatus() {
     if (!this.statusEl) return;
 
-    // Keep it short so it looks like the other HUD hints.
-    // If you want it to say "Muted" when muted, we can swap this line.
-    this.statusEl.textContent = "Mute: M";
+    const volPct = Math.round(this.volume * 100);
+    const text = this.muted ? "Muted" : `Vol ${volPct}%`;
+
+    this.statusEl.textContent = `${text}  |  M: Mute , [ : Volume down , ] : Volume up`;
   }
 
   // Mute control 
-  applyMute() {
-    const bgmBase = 0.1;
-    const overBase = 0.4;
-    this.bgm.volume = this.muted ? 0 : bgmBase;
-    this.gameOverSound.volume = this.muted ? 0 : overBase;
+  applyVolume() {
+    // clamp
+    this.volume = Math.max(0, Math.min(1, this.volume));
+    this.gameOverVolume = Math.max(0, Math.min(1, this.gameOverVolume));
+
+    this.bgm.volume = this.muted ? 0 : this.volume;
+    this.gameOverSound.volume = this.muted ? 0 : this.gameOverVolume;
+
+    // persist
+    localStorage.setItem("meteoroid_volume", String(this.volume));
+    localStorage.setItem("meteoroid_over_volume", String(this.gameOverVolume));
+    localStorage.setItem("meteoroid_muted", this.muted ? "1" : "0");
   }
 
   toggleMute() {
     this.muted = !this.muted;
-    this.applyMute();
+    this.applyVolume();
+  }
+
+  changeVolume(delta) {
+    this.volume = Math.max(0, Math.min(1, this.volume + delta));
+    this.applyVolume();
   }
 
   // Stars 
@@ -161,7 +175,7 @@ class MeteoroidGame {
     // Start BGM ONLY when the game starts (after Enter)
     this.bgm.pause();
     this.bgm.currentTime = 0;
-    this.bgm.play().catch(() => {});
+    this.bgm.play().catch(() => { });
   }
 
   restart() {
@@ -193,6 +207,8 @@ class MeteoroidGame {
     // Don’t autoplay BGM here (only on Enter)
     this.bgm.pause();
     this.bgm.currentTime = 0;
+
+    this.applyVolume();
 
     // Keep HUD hint visible
     this.updateHudStatus();
@@ -257,8 +273,12 @@ class MeteoroidGame {
     // Stars always animate
     this.updateStars(dt);
 
-    // Mute toggle always available
+    // Audio controls (always available)
     if (this.consumeKey("m", "M")) this.toggleMute();
+
+    // volume down/up: [ ]
+    if (this.consumeKey("[", "{")) this.changeVolume(-0.05);
+    if (this.consumeKey("]", "}")) this.changeVolume(+0.05);
 
     // Start screen
     if (!this.started) {
@@ -281,7 +301,7 @@ class MeteoroidGame {
       this.restart();
 
       // After restart (during gameplay), resume BGM
-      this.bgm.play().catch(() => {});
+      this.bgm.play().catch(() => { });
       return;
     }
 
@@ -381,7 +401,7 @@ class MeteoroidGame {
         // Game over SFX
         this.gameOverSound.pause();
         this.gameOverSound.currentTime = 0;
-        this.gameOverSound.play().catch(() => {});
+        this.gameOverSound.play().catch(() => { });
 
         // Best time
         if (this.elapsed > this.bestTime) {
