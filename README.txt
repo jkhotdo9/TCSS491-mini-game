@@ -34,3 +34,13 @@ Updates:
 - Fixed canvas scaling to properly center text and overlays on all screen sizes.
 
 - Starfield animation now runs on the start screen as well.
+
+
+V3
+Updates:
+
+-Added physics
+
+-Added Volume control
+
+-Added Boost particles
